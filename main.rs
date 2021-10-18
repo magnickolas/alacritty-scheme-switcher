@@ -40,7 +40,7 @@ fn get_config_file_path() -> Result<String> {
     let path = possible_paths
         .iter()
         .find(|x| x.exists())
-        .map(|x| x.to_str().unwrap().to_string())
+        .map(|x| x.to_str().unwrap().to_owned())
         .ok_or(Error::NotFoundConfigFile)?;
     Ok(path)
 }
@@ -85,7 +85,7 @@ fn main() -> Result<()> {
         .collect::<Vec<String>>();
     for (i, line) in config_lines.clone().iter().enumerate() {
         for caps in cs_line_regex.captures_iter(line) {
-            cur_cs_anchor_opt = Some(caps[1].to_string());
+            cur_cs_anchor_opt = Some(caps[1].to_owned());
             cur_cs_line_opt = Some(&mut config_lines[i]);
         }
     }
@@ -94,7 +94,7 @@ fn main() -> Result<()> {
     let mut cs_anchors_iter = anchors.iter().chain(&anchors);
     cs_anchors_iter
         .position(|x| *x == cur_cs_anchor)
-        .ok_or_else(|| Error::ColorSchemeNotInList(cur_cs_line.to_string()))?;
+        .ok_or_else(|| Error::ColorSchemeNotInList(cur_cs_line.to_owned()))?;
     let new_cs_anchor = cs_anchors_iter.next().unwrap();
     let new_cs_line = gen_cs_line!(new_cs_anchor);
     *cur_cs_line = new_cs_line;
