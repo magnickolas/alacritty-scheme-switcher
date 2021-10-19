@@ -24,7 +24,7 @@ enum Error {
     ColorSchemeNotInList(String),
 }
 
-fn get_config_file_path() -> Result<String> {
+fn get_config_file_path() -> Result<path::PathBuf> {
     let mut possible_paths = Vec::<path::PathBuf>::new();
     if let Ok(xdg_config_home) = env::var("XDG_CONFIG_HOME")
         .as_ref()
@@ -40,9 +40,8 @@ fn get_config_file_path() -> Result<String> {
     let path = possible_paths
         .iter()
         .find(|x| x.exists())
-        .map(|x| x.to_str().unwrap().to_owned())
         .ok_or(Error::NotFoundConfigFile)?;
-    Ok(path)
+    Ok(path.to_owned())
 }
 
 impl fmt::Display for Error {
@@ -71,9 +70,9 @@ fn get_cs_anchors(config_text: &str) -> Result<Vec<String>> {
 }
 
 fn main() -> Result<()> {
-    let config_file_path: &str = &get_config_file_path()?;
-    let f = fs::File::open(config_file_path)?;
-    let config_text = fs::read_to_string(config_file_path)?;
+    let config_file_path = get_config_file_path()?;
+    let f = fs::File::open(&config_file_path)?;
+    let config_text = fs::read_to_string(&config_file_path)?;
     let anchors = get_cs_anchors(&config_text)?;
     let config_buf = io::BufReader::new(f);
     let cs_line_regex = regex::Regex::new(CS_LINE_PATTERN)?;
@@ -101,7 +100,7 @@ fn main() -> Result<()> {
     let mut f = fs::OpenOptions::new()
         .write(true)
         .truncate(true)
-        .open(config_file_path)?;
+        .open(&config_file_path)?;
     writeln!(f, "{}", config_lines.join("\n"))?;
     Ok(())
 }
